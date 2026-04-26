@@ -1,6 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 import productRoutes from "./routes/productRoutes.js";
 
 // .env file theke data (jemon MONGO_URI) load korar jonno
@@ -8,6 +9,8 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(cors());
 
 // JSON data receive korar middleware
 app.use(express.json());
