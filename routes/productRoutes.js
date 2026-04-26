@@ -1,5 +1,6 @@
 import express from "express";
 import Product from "../models/ProductSchema.js";
+import { upload } from "../config/cloudinaryConfig.js";
 
 const router = express.Router();
 
