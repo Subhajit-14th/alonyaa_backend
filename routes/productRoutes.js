@@ -25,8 +25,7 @@ const uploadToCloudinary = async (fileBuffer) => {
 // Product upload route
 router.post("/uploadProduct", upload.array("images", 5), async (req, res) => {
   try {
-    const { name, category, sizes, quantity, price, descriptionPrice } =
-      req.body;
+    const { name, category, sizes, quantity, price, discountPrice } = req.body;
 
     const imageUrls = req.files ? req.files.map((file) => file.path) : [];
 
@@ -43,7 +42,7 @@ router.post("/uploadProduct", upload.array("images", 5), async (req, res) => {
       sizes,
       quantity,
       price,
-      descriptionPrice,
+      discountPrice,
       images: imageUrls,
     });
 
