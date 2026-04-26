@@ -1,8 +1,26 @@
 import express from "express";
+import multer from "multer";
 import Product from "../models/ProductSchema.js";
-import { upload } from "../config/cloudinaryConfig.js";
+import cloudinary from "../config/cloudinaryConfig.js";
 
 const router = express.Router();
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// Cloudinary-তে ছবি আপলোড করার হেল্পার ফাংশন
+const uploadToCloudinary = async (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "alonyaa_products" }, // Cloudinary-তে এই নামে ফোল্ডার হবে
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      },
+    );
+    uploadStream.end(fileBuffer);
+  });
+};
 
 // Product upload route
 router.post("/uploadProduct", upload.array("images", 5), async (req, res) => {
