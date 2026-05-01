@@ -115,4 +115,66 @@ router.get("/getAllProducts", async (req, res) => {
   }
 });
 
+router.get("/getProduct/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // ডাটাবেস থেকে ID অনুযায়ী নির্দিষ্ট প্রোডাক্ট খোঁজা হচ্ছে
+    const product = await Product.findById(productId);
+
+    // যদি প্রোডাক্ট না পাওয়া যায়
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found!",
+      });
+    }
+
+    // প্রোডাক্ট পাওয়া গেলে তার সমস্ত ডিটেইলস রিটার্ন করা হচ্ছে
+    res.status(200).json({
+      success: true,
+      message: "Product details fetched successfully!",
+      data: product,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch product details",
+      error: error.message,
+    });
+  }
+});
+
+router.delete("/deleteProduct/:id", async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    // ডাটাবেস থেকে প্রোডাক্টটি ডিলিট করা হচ্ছে
+    const deletedProduct = await Product.findByIdAndDelete(productId);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found to delete!",
+      });
+    }
+
+    // <-- অত্যন্ত গুরুত্বপূর্ণ: একটি প্রোডাক্ট ডিলিট হলে ক্যাশ ক্লিয়ার করতে হবে,
+    // যাতে GET রিকোয়েস্টে ডিলিট হওয়া প্রোডাক্টটি আর না দেখায়।
+    productCache.del("alonyaaProductsList");
+
+    res.status(200).json({
+      success: true,
+      message: "Alonyaa Product deleted successfully!",
+      deletedData: deletedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete product",
+      error: error.message,
+    });
+  }
+});
+
 export default router;
