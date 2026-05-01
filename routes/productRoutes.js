@@ -177,4 +177,79 @@ router.delete("/deleteProduct/:id", async (req, res) => {
   }
 });
 
+router.put("/editProduct/:id", upload.array("images", 5), async (req, res) => {
+  try {
+    const productId = req.params.id;
+
+    const { name, category, sizes, quantity, price, discountPrice, images } =
+      req.body;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found!",
+      });
+    }
+
+    let finalImages = [];
+
+    // পুরনো ছবিগুলো হ্যান্ডেল করা (যদি থাকে)
+    if (images) {
+      if (Array.isArray(images)) {
+        finalImages = [...images];
+      } else {
+        finalImages.push(images);
+      }
+    }
+
+    // নতুন ছবি আপলোড করা (যদি থাকে)
+    if (req.files && req.files.length > 0) {
+      const newUploadedUrls = await Promise.all(
+        req.files.map((file) => uploadToCloudinary(file.buffer)),
+      );
+      finalImages = [...finalImages, ...newUploadedUrls];
+    }
+
+    if (finalImages.length > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Total images cannot exceed 5.",
+      });
+    }
+
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (category) updateFields.category = category;
+    if (sizes) updateFields.sizes = sizes;
+    if (quantity) updateFields.quantity = quantity;
+    if (price) updateFields.price = price;
+    if (discountPrice) updateFields.discountPrice = discountPrice;
+
+    if (finalImages.length > 0) {
+      updateFields.images = finalImages;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $set: updateFields },
+      { new: true },
+    );
+
+    productCache.del("alonyaaProductsList");
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully!",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update product details",
+      error: error.message,
+    });
+  }
+});
+
 export default router;
